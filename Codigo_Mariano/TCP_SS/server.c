@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include <netdb.h> 
+#include <winsock.h> 
 #include <netinet/in.h> 
 #include <stdlib.h> 
 #include <string.h> 
