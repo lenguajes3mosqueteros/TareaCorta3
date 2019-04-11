@@ -8,17 +8,16 @@
 #define ALTO 600
 #define ANCHO_E 30
 #define ALTO_E 30
-#define ANCHO_P 30
-#define ALTO_P 10
+#define ANCHO_J 30
+#define ALTO_J 10
 #define ANCHO_B 5
 #define ALTO_B 15
-#define BALAS_P 1
+#define BALAS_J 1
 #define BALAS_E 3
 #define BASE 4
 #define ANCHO_BASE 60
 #define ALTO_BASE 40
 
-enum colores_t {rojo, verde, morado};
 enum direcciones_t {izquierda, derecha, estatico};
 enum estados_t {menu, opciones, juego, juegoTerminado, pausa};
 enum clavesColor_t {magenta, lima};
@@ -37,7 +36,6 @@ struct platillo_t {
 
 struct enemigo_t {
     SDL_Rect vida;
-    enum colores_t color;
     int vivo;
     int puntos;
 };
@@ -76,21 +74,41 @@ static SDL_Surface* imagenBase[4];
 static SDL_Surface* imagenDaño;
 static SDL_Surface* imagenDañoSuperior;
 static SDL_Surface* imagenJuegoTerminado;
-struct score_t puntuacion;
+struct puntuacion_t puntuacion;
 struct invasores_t invasores;
 struct platillo_t platillo;
 struct base_t base[BASE];
 struct jugador_t jugador;
-struct bala_t balas[BALAS_P];
+struct bala_t balas[BALAS_J];
 struct bala_t balasEnemigas[BALAS_E];
 int pausarDistancia;
 Uint32 pausarTiempo;
 enum estados_t estado;
 Uint32 tiempoTitulo;
 
-int dibujarChar(char* c, int x, int y) {
-    SDL_Rect* fuente;
-    SDL_Rect* destino;
+int dibujarChar(char c, int x, int y) {
+    SDL_Rect fuente, destino;
+    char *map[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "!@#$%^&*()_+{}|:\"<>?,.;'-=", "0123456789"};
+    fuente.x = 0;
+	fuente.y = 0;
+	fuente.w = 20;
+	fuente.h = 20;
+	destino.x = x;
+	destino.y = y;
+	destino.w = 20;
+	destino.h = 20;
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < strlen(map[i]); j++){
+            if (c == map[i][j]) {
+                SDL_BlitSurface(mapaC, &fuente, pantalla, &destino);
+                return 0;
+            }
+            fuente.x += 20;
+        }
+        fuente.y += 20;
+        fuente.x = 0;
+    }
+    return 0;
 }
 
 void dibujarString(char* s, int x, int y) {
@@ -147,15 +165,12 @@ void iniciarInvasores() {
             invasores.enemigos[i][j].vida.h = ALTO_E;
             x += ANCHO_E + 15;
             if (i == 0) {
-                invasores.enemigos[i][j].color = morado;
-                invasores.enemigos[i][j].puntos = 30;
+                invasores.enemigos[i][j].puntos = 10;
             }
             else if (i >= 1 && i < 3) {
-                invasores.enemigos[i][j].color = verde;
                 invasores.enemigos[i][j].puntos = 20;
             } else {
-                invasores.enemigos[i][j].color = rojo;
-                invasores.enemigos[i][j].puntos = 10;
+                invasores.enemigos[i][j].puntos = 40;
             }
         }
         x = 0;
@@ -164,10 +179,10 @@ void iniciarInvasores() {
 }
 
 void iniciarJugador() {
-    jugador.vida.x = (ANCHO / 2) - (ANCHO_P / 2);
-    jugador.vida.y = ALTO - (ALTO_P + 10);
-    jugador.vida.w = ANCHO_P;
-    jugador.vida.h = ALTO_P;
+    jugador.vida.x = (ANCHO / 2) - (ANCHO_J / 2);
+    jugador.vida.y = ALTO - (ALTO_J + 10);
+    jugador.vida.w = ANCHO_J;
+    jugador.vida.h = ALTO_J;
     jugador.vidas = 3;
 }
 
@@ -212,6 +227,140 @@ void dibujarFondo() {
 	fuente.w = pantalla->w;
 	fuente.h = pantalla->h;
 	SDL_FillRect(pantalla, &fuente, 0);
+}
+
+void dibujarHUD() {
+    SDL_Rect r;
+    r.x = ANCHO;
+    r.y = 0;
+    r.h = ALTO_PANTALLA;
+    r.w = ANCHO_PANTALLA - ANCHO;
+    SDL_FillRect(pantalla, &r, 41);
+    char etiquetaPuntuacion[] = "Puntuacion";
+    dibujarString(etiquetaPuntuacion, ANCHO, 0);
+    char etiquetaNum[10];
+    SDL_snprintf(etiquetaNum, 10, "%d", puntuacion.puntos);
+    dibujarString(etiquetaNum, ANCHO, 20);
+    char nivel[] = "Nivel";
+    dibujarString(nivel, ANCHO, 60);
+    char nivelNum[2];
+    SDL_snprintf(nivelNum, 2, "%d", puntuacion.nivel);
+    dibujarString(nivelNum, ANCHO, 80);
+    char vidas[] = "Vidas";
+    dibujarString(vidas, ANCHO, 120);
+    char vidasNum[2];
+    SDL_snprintf(vidasNum, 2, "%d", jugador.vidas);
+    dibujarString(vidasNum, ANCHO, 140);
+}
+
+void dibujarPantallaInicio() {
+    SDL_Rect fuente;
+    SDL_Rect destino;
+    fuente.x = 0;
+    fuente.y = 0;
+    fuente.w = pantallaInicio->w;
+    fuente.h = pantallaInicio->h;
+    destino.x = (ANCHO_PANTALLA / 2) - (pantallaInicio->w / 2);
+    destino.y = 0;
+    destino.w = pantallaInicio->w;
+    destino.h = pantallaInicio->h;
+    SDL_BlitSurface(pantallaInicio, &fuente, pantalla, &destino);
+}
+
+void dibujarPlatillo() {
+    SDL_Rect fuente;
+	fuente.x = 0;
+	fuente.y = 0;
+	fuente.w = 30;
+	fuente.h = 20;
+	if (platillo.vivo == 1) {
+		SDL_BlitSurface(imagenPlatillo, &fuente, pantalla, &platillo.vida);
+	}
+}
+
+void dibujarInvasores() {
+    SDL_Rect fuente, destino;
+    fuente.w = ANCHO_E;
+    fuente.h = ALTO_E;
+    for(int i = 0; i < 5; i++) {
+        for(int j = 0; j < 10; j++) {
+            if (invasores.enemigos[i][j].vivo == 1) {
+                if (i == 0) {
+                    if (invasores.estado == 0) {
+                        fuente.x = 0;
+                        fuente.y = 0;
+                    } else {
+                        fuente.x = 30;
+                        fuente.y = 0;
+                    } 
+                }
+                else if (i > 0 && i < 3) {
+                    if (invasores.estado == 0) {
+                        fuente.x = ALTO_E;
+                        fuente.y = 0;
+                    } else {
+                        fuente.x = 30;
+                        fuente.y = 0;
+                    } 
+                } else {
+                    if (invasores.estado == 0) {
+                        fuente.x = 0;
+                        fuente.y = ALTO_E * 2;
+                    } else {
+                        fuente.x = 30;
+                        fuente.y = ALTO_E * 2;
+                    } 
+                }
+                destino.x = invasores.enemigos[i][j].vida.x;
+                destino.y = invasores.enemigos[i][j].vida.y;
+                destino.w = invasores.enemigos[i][j].vida.w;
+                destino.h = invasores.enemigos[i][j].vida.h;
+                SDL_BlitSurface(mapaInvasores, &fuente, pantalla, &destino);
+            }
+        }
+    }
+}
+
+void dibujarBases() {
+    SDL_Rect fuente;
+	fuente.x = 0;
+	fuente.y = 0;
+	fuente.w = ANCHO_BASE;
+	fuente.h = ALTO_BASE;
+    for(int i = 0; i < BASE; i++) {
+        SDL_BlitSurface(imagenBase[i], &fuente, pantalla, &base[i].vida);
+    }
+    
+}
+
+void dibujarJugador() {
+    SDL_Rect fuente;
+	fuente.x = 0;
+	fuente.y = 0;
+	fuente.w = ANCHO_J;
+	fuente.h = ALTO_J;
+	SDL_BlitSurface(imagenJugador, &fuente, pantalla, &jugador.vida);
+}
+
+void dibujarBalas(struct bala_t* b, int max) {
+    for(int i = 0; i < max; i++) {
+        if (b[i].vivo == 1) {
+            SDL_FillRect(pantalla, &b[i].vida, 255);
+        }
+    }
+}
+
+void dibujarJuegoTerminado() {
+    SDL_Rect fuente, destino;
+	fuente.x = 0;
+	fuente.y = 0;
+	fuente.w = imagenJuegoTerminado->w;
+	fuente.h = imagenJuegoTerminado->h;
+	destino.x = (ANCHO / 2) - (imagenJuegoTerminado->w / 2);
+	destino.y = (ALTO / 2) - (imagenJuegoTerminado->h / 2);
+	destino.w = imagenJuegoTerminado->w;
+	destino.h = imagenJuegoTerminado->h;
+	SDL_BlitSurface(imagenJuegoTerminado, &fuente, pantalla, &destino);
 }
 
 int main(){
