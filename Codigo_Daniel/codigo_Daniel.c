@@ -1,128 +1,127 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "SDL/SDL.h"
-#define SCREEN_WIDTH 800 
-#define SCREEN_HEIGHT 600
-#define E_WIDTH 30
-#define WIDTH 600 
-#define HEIGHT 600
-#define E_WIDTH 30
-#define E_HEIGHT 30
-#define P_WIDTH 30
-#define P_HEIGHT 10
-#define B_WIDTH 5
-#define B_HEIGHT 15
-#define P_BULLETS 1
-#define E_BULLETS 3
+#define ANCHO_PANTALLA 800 
+#define ALTO_PANTALLA 600
+#define ANCHO 600 
+#define ALTO 600
+#define ANCHO_E 30
+#define ALTO_E 30
+#define ANCHO_P 30
+#define ALTO_P 10
+#define ANCHO_B 5
+#define ALTO_B 15
+#define BALAS_P 1
+#define BALAS_E 3
 #define BASE 4
-#define BASE_WIDTH 60
-#define BASE_HEIGHT 40
+#define ANCHO_BASE 60
+#define ALTO_BASE 40
 
-enum colors_t {red, green, purple};
-enum directions_t {left, right, stationary};
-enum states_t {menu, options, game, gameOver, pause};
-enum colorKeys_t {magenta, lime};
+enum colores_t {rojo, verde, morado};
+enum direcciones_t {izquierda, derecha, estatico};
+enum estados_t {menu, opciones, juego, juegoTerminado, pausa};
+enum clavesColor_t {magenta, lima};
 
-struct score_t {
-    int shots;
-    int points;
-    int level;
+struct puntuacion_t {
+    int disparos;
+    int puntos;
+    int nivel;
 };
 
-struct saucer_t {
-    SDL_Rect hitbox;
-    int alive;
-    enum directions_t direction;
+struct platillo_t {
+    SDL_Rect vida;
+    int vivo;
+    enum direcciones_t direccion;
 };
 
-struct enemy_t {
-    SDL_Rect hitbox;
-    enum colors_t color;
-    int alive;
-    int points;
+struct enemigo_t {
+    SDL_Rect vida;
+    enum colores_t color;
+    int vivo;
+    int puntos;
 };
 
-struct invaders_t {
-    struct enemy_t enemies[5][10];
-    enum directions_t direction;
-    int killed;
-    int speed;
-    int state;
-    int stateSpeed;
-    Uint32 stateTime;
+struct invasores_t {
+    struct enemigo_t enemigos[5][10];
+    enum direcciones_t direccion;
+    int asesinado;
+    int velocidad;
+    int estado;
+    int estadoVelocidad;
+    Uint32 estadoTiempo;
 };
 
 struct base_t {
-    SDL_Rect hitbox;
+    SDL_Rect vida;
 };
 
-struct player_t {
-    SDL_Rect hitbox;
-    int lives;
+struct jugador_t {
+    SDL_Rect vida;
+    int vidas;
 };
 
-struct bullet_t {
-    SDL_Rect hitbox;
-    int alive;
+struct bala_t {
+    SDL_Rect vida;
+    int vivo;
 };
 
-static SDL_Surface* screen;
-static SDL_Surface* titleScreen;
-static SDL_Surface* cMap;
-static SDL_Surface* invadersMap;
-static SDL_Surface* playerImg;
-static SDL_Surface* saucerImg;
-static SDL_Surface* baseImg[4];
-static SDL_Surface* damageImg;
-static SDL_Surface* damageTopImg;
-static SDL_Surface* gameOverImg;
-struct score_t score;
-struct invaders_t invaders;
-struct saucer_t saucer;
+static SDL_Surface* pantalla;
+static SDL_Surface* pantallaInicio;
+static SDL_Surface* mapaC;
+static SDL_Surface* mapaInvasores;
+static SDL_Surface* imagenJugador;
+static SDL_Surface* imagenPlatillo;
+static SDL_Surface* imagenBase[4];
+static SDL_Surface* imagenDaño;
+static SDL_Surface* imagenDañoSuperior;
+static SDL_Surface* imagenJuegoTerminado;
+struct score_t puntuacion;
+struct invasores_t invasores;
+struct platillo_t platillo;
 struct base_t base[BASE];
-struct player_t player;
-struct bullet_t bullets[P_BULLETS];
-struct bullet_t eBullets[E_BULLETS];
-int pauseLen;
-Uint32 pauseTime;
-enum states_t state;
-Uint32 titleTime;
+struct jugador_t jugador;
+struct bala_t balas[BALAS_P];
+struct bala_t balasEnemigas[BALAS_E];
+int pausarDistancia;
+Uint32 pausarTiempo;
+enum estados_t estado;
+Uint32 tiempoTitulo;
 
-int drawChar(char* c, int x, int y) {
-    SDL_Rect* src;
-    SDL_Rect* dest;
+int dibujarChar(char* c, int x, int y) {
+    SDL_Rect* fuente;
+    SDL_Rect* destino;
 }
 
-void drawString(char* s, int x, int y) {
-    int i;
-	for (i = 0; i < strlen(s); i++) {
-		drawChar(s[i],x,y);
+void dibujarString(char* s, int x, int y) {
+	for (int i = 0; i < strlen(s); i++) {
+		h(s[i], x, y);
 		x += 20;
     }
 }
 
-void paused(int len) {
-    state = pause;
-    pauseTime = SDL_GetTicks();
-    pauseLen = len;
+void pausa(int distancia) {
+    estado = pausa;
+    pausarTiempo = SDL_GetTicks();
+    pausarDistancia = distancia;
 }
 
-int loadImage(char* filename, SDL_Surface* surface, enum colorKeys_t colorKey) {
-    SDL_Surface* temp = SDL_LoadBMP(filename);
-    Uint32 colorKey;
+int cargarImagen(char* nombreArchivo, SDL_Surface* superficie, enum clavesColor_t claveColor) {
+    SDL_Surface* temp = SDL_LoadBMP(nombreArchivo);
+    Uint32 claveColor;
     if (temp == NULL) {
-        printf("Unable to load %s\n", filename);
+        printf("Unable to load %s\n", nombreArchivo);
         return 1;
     }
-    if (colorKey == magenta) {
-        colorKey = SDL_MapRGB(temp->format, 255, 0, 255);
+    if (claveColor == magenta) {
+        claveColor = SDL_MapRGB(temp->format, 255, 0, 255);
     }
-    else if (colorKey == lime) {
-        colorKey = SDL_MapRGB(temp->format, 0, 255, 0);
+    else if (claveColor == lima) {
+        claveColor = SDL_MapRGB(temp->format, 0, 255, 0);
     }
-    SDL_SetColorKey(temp, SDL_TRUE, colorKey);
-    surface = SDL_DisplayFormat(temp);
-    if (surface == NULL) {
+    SDL_SetColorKey(temp, SDL_TRUE, claveColor);
+    superficie = SDL_DisplayFormat(temp);
+    if (superficie == NULL) {
         printf("Unable to convert bitmap\n");
         return 1;
     }
@@ -130,89 +129,89 @@ int loadImage(char* filename, SDL_Surface* surface, enum colorKeys_t colorKey) {
     return 0;
 }
 
-void invadersInit() {
-    invaders.direction = right;
-    invaders.speed = 1;
-    invaders.state = 0;
-    invaders.killed = 0;
-    invaders.stateSpeed = 1000;
-    invaders.stateTime = SDL_GetTicks();
+void iniciarInvasores() {
+    invasores.direccion = derecha;
+    invasores.velocidad = 1;
+    invasores.estado = 0;
+    invasores.asesinado = 0;
+    invasores.estadoVelocidad = 1000;
+    invasores.estadoTiempo = SDL_GetTicks();
     int x = 0;
     int y = 30;
     for(int i = 0; i < 5; i++) {
         for(int j = 0; j < 10; j++) {
-            invaders.enemies[i][j].alive = 1;
-            invaders.enemies[i][j].hitbox.x = x;
-            invaders.enemies[i][j].hitbox.y = y;
-            invaders.enemies[i][j].hitbox.w = E_WIDTH;
-            invaders.enemies[i][j].hitbox.h = E_HEIGHT;
-            x += E_WIDTH + 15;
+            invasores.enemigos[i][j].vivo = 1;
+            invasores.enemigos[i][j].vida.x = x;
+            invasores.enemigos[i][j].vida.y = y;
+            invasores.enemigos[i][j].vida.w = ANCHO_E;
+            invasores.enemigos[i][j].vida.h = ALTO_E;
+            x += ANCHO_E + 15;
             if (i == 0) {
-                invaders.enemies[i][j].color = purple;
-                invaders.enemies[i][j].points = 30;
+                invasores.enemigos[i][j].color = morado;
+                invasores.enemigos[i][j].puntos = 30;
             }
             else if (i >= 1 && i < 3) {
-                invaders.enemies[i][j].color = green;
-                invaders.enemies[i][j].points = 20;
+                invasores.enemigos[i][j].color = verde;
+                invasores.enemigos[i][j].puntos = 20;
             } else {
-                invaders.enemies[i][j].color = red;
-                invaders.enemies[i][j].points = 10;
+                invasores.enemigos[i][j].color = rojo;
+                invasores.enemigos[i][j].puntos = 10;
             }
         }
         x = 0;
-        y += E_HEIGHT + 15;        
+        y += ALTO_E + 15;        
     }
 }
 
-void playerInit() {
-    player.hitbox.x = (WIDTH / 2) - (P_WIDTH / 2);
-    player.hitbox.y = HEIGHT - (P_HEIGHT + 10);
-    player.hitbox.w = P_WIDTH;
-    player.hitbox.h = P_HEIGHT;
-    player.lives = 3;
+void iniciarJugador() {
+    jugador.vida.x = (ANCHO / 2) - (ANCHO_P / 2);
+    jugador.vida.y = ALTO - (ALTO_P + 10);
+    jugador.vida.w = ANCHO_P;
+    jugador.vida.h = ALTO_P;
+    jugador.vidas = 3;
 }
 
-void basesInit() {
-    int baseTotal = BASE_WIDTH * 4;
-    int spaceLeft = WIDTH - baseTotal;
+void iniciarBases() {
+    int baseTotal = ANCHO_BASE * 4;
+    int spaceLeft = ANCHO - baseTotal;
     int evenSpace = spaceLeft / 5;
     int x = evenSpace;
     int y = 500;
     for(int i = 0; i < BASE; i++) {
-        base[i].hitbox.x = x;
-		base[i].hitbox.y = y;
-		base[i].hitbox.w = BASE_WIDTH;
-        base[i].hitbox.h = BASE_HEIGHT;
-        x += BASE_WIDTH + evenSpace;
+        base[i].vida.x = x;
+		base[i].vida.y = y;
+		base[i].vida.w = ANCHO_BASE;
+        base[i].vida.h = ALTO_BASE;
+        x += ANCHO_BASE + evenSpace;
     }
 }
 
-void saucerInit() {
-    saucer.hitbox.x = 0;	
-	saucer.hitbox.y	= 0;
-	saucer.hitbox.w	= 30;
-	saucer.hitbox.h = 20;
-	saucer.alive = 0;
-    saucer.direction = right;
+void iniciarPlatillo() {
+    platillo.vida.x = 0;	
+	platillo.vida.y	= 0;
+	platillo.vida.w	= 30;
+	platillo.vida.h = 20;
+	platillo.vivo = 0;
+    platillo.direccion = derecha;
 }
 
-void bulletsInit(struct bullet_t *b, int max) {
+void iniciarBalas(struct bala_t *b, int max) {
     for(int i = 0; i < max; i++) {
-        b[i].alive = 0;
-		b[i].hitbox.x = 0;
-		b[i].hitbox.y = 0;
-		b[i].hitbox.w = B_WIDTH;
-        b[i].hitbox.h = B_HEIGHT;
+        b[i].vivo = 0;
+		b[i].vida.x = 0;
+		b[i].vida.y = 0;
+		b[i].vida.w = ANCHO_BASE;
+        b[i].vida.h = ALTO_BASE;
     }
 }
 
-void backgroundDraw() {
-    SDL_Rect src;
-	src.x = 0;
-	src.y = 0;
-	src.w = screen->w;
-	src.h = screen->h;
-	SDL_FillRect(screen, &src, 0);
+void dibujarFondo() {
+    SDL_Rect fuente;
+	fuente.x = 0;
+	fuente.y = 0;
+	fuente.w = pantalla->w;
+	fuente.h = pantalla->h;
+	SDL_FillRect(pantalla, &fuente, 0);
 }
 
 int main(){
