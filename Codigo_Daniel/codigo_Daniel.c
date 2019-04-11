@@ -1,27 +1,27 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <SDL2/SDL.h>
-#define SCREEN_WIDTH 800 
-#define SCREEN_HEIGHT 600
-#define E_WIDTH 30
-#define WIDTH 600 
-#define HEIGHT 600
-#define E_WIDTH 30
-#define E_HEIGHT 30
-#define P_WIDTH 30
-#define P_HEIGHT 10
-#define B_WIDTH 5
-#define B_HEIGHT 15
-#define P_BULLETS 1
-#define E_BULLETS 3
+#include <string.h>
+#include "SDL/SDL.h"
+#define ANCHO_PANTALLA 800 
+#define ALTO_PANTALLA 600
+#define ANCHO 600 
+#define ALTO 600
+#define ANCHO_E 30
+#define ALTO_E 30
+#define ANCHO_P 30
+#define ALTO_P 10
+#define ANCHO_B 5
+#define ALTO_B 15
+#define BALAS_P 1
+#define BALAS_E 3
 #define BASE 4
-#define BASE_WIDTH 60
-#define BASE_HEIGHT 40
+#define ANCHO_BASE 60
+#define ALTO_BASE 40
 
-enum colors_t {red, green, purple};
-enum directions_t {left, right, stationary};
-enum states_t {menu, options, game, gameOver, pause};
-enum colorKeys_t {magenta, lime};
+enum colores_t {rojo, verde, morado};
+enum direcciones_t {left, right, stationary};
+enum estados_t {menu, options, game, gameOver, pause};
+enum clavesColor_t {magenta, lime};
 
 struct score_t {
     int shots;
@@ -66,27 +66,27 @@ struct bullet_t {
     int alive;
 };
 
-static SDL_Surface* screen;
-static SDL_Surface* titleScreen;
-static SDL_Surface* cMap;
-static SDL_Surface* invadersMap;
-static SDL_Surface* playerImg;
-static SDL_Surface* saucerImg;
-static SDL_Surface* baseImg[4];
-static SDL_Surface* damageImg;
-static SDL_Surface* damageTopImg;
-static SDL_Surface* gameOverImg;
-struct score_t score;
-struct invaders_t invaders;
-struct saucer_t saucer;
+static SDL_Surface* pantalla;
+static SDL_Surface* pantallaInicio;
+static SDL_Surface* mapaC;
+static SDL_Surface* mapaInvasores;
+static SDL_Surface* imagenJugador;
+static SDL_Surface* imagenPlatillo;
+static SDL_Surface* imagenBase[4];
+static SDL_Surface* imagenDaño;
+static SDL_Surface* imagenDañoSuperior;
+static SDL_Surface* imagenJuegoTerminado;
+struct score_t puntuacion;
+struct invaders_t invasores;
+struct saucer_t platillo;
 struct base_t base[BASE];
-struct player_t player;
-struct bullet_t bullets[P_BULLETS];
-struct bullet_t eBullets[E_BULLETS];
-int pauseLen;
-Uint32 pauseTime;
-enum states_t state;
-Uint32 titleTime;
+struct player_t jugador;
+struct bullet_t balas[P_BULLETS];
+struct bullet_t balasEnemigas[E_BULLETS];
+int pausarDistancia;
+Uint32 pausarTiempo;
+enum states_t estado;
+Uint32 tiempoTitulo;
 
 int drawChar(char* c, int x, int y) {
     SDL_Rect* src;
