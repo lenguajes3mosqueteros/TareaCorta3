@@ -2,7 +2,7 @@
 #include <dirent.h>
 #include <windows.h>
 
-#define CMD_01 1 //Envio de arquivo
+#define CMD_01 1 //Envio de archivo
 #define CMD_01_01 1 //Servidor informa que está aguardando o arquivo do cliente
 #define CMD_01_02 2 //Servidor informa que recebeu o arquivo completo
 
