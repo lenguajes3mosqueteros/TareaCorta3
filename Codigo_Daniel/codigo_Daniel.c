@@ -130,6 +130,91 @@ int loadImage(char* filename, SDL_Surface* surface, enum colorKeys_t colorKey) {
     return 0;
 }
 
+void invadersInit() {
+    invaders.direction = right;
+    invaders.speed = 1;
+    invaders.state = 0;
+    invaders.killed = 0;
+    invaders.stateSpeed = 1000;
+    invaders.stateTime = SDL_GetTicks();
+    int x = 0;
+    int y = 30;
+    for(int i = 0; i < 5; i++) {
+        for(int j = 0; j < 10; j++) {
+            invaders.enemies[i][j].alive = 1;
+            invaders.enemies[i][j].hitbox.x = x;
+            invaders.enemies[i][j].hitbox.y = y;
+            invaders.enemies[i][j].hitbox.w = E_WIDTH;
+            invaders.enemies[i][j].hitbox.h = E_HEIGHT;
+            x += E_WIDTH + 15;
+            if (i == 0) {
+                invaders.enemies[i][j].color = purple;
+                invaders.enemies[i][j].points = 30;
+            }
+            else if (i >= 1 && i < 3) {
+                invaders.enemies[i][j].color = green;
+                invaders.enemies[i][j].points = 20;
+            } else {
+                invaders.enemies[i][j].color = red;
+                invaders.enemies[i][j].points = 10;
+            }
+        }
+        x = 0;
+        y += E_HEIGHT + 15;        
+    }
+}
+
+void playerInit() {
+    player.hitbox.x = (WIDTH / 2) - (P_WIDTH / 2);
+    player.hitbox.y = HEIGHT - (P_HEIGHT + 10);
+    player.hitbox.w = P_WIDTH;
+    player.hitbox.h = P_HEIGHT;
+    player.lives = 3;
+}
+
+void basesInit() {
+    int baseTotal = BASE_WIDTH * 4;
+    int spaceLeft = WIDTH - baseTotal;
+    int evenSpace = spaceLeft / 5;
+    int x = evenSpace;
+    int y = 500;
+    for(int i = 0; i < BASE; i++) {
+        base[i].hitbox.x = x;
+		base[i].hitbox.y = y;
+		base[i].hitbox.w = BASE_WIDTH;
+        base[i].hitbox.h = BASE_HEIGHT;
+        x += BASE_WIDTH + evenSpace;
+    }
+}
+
+void saucerInit() {
+    saucer.hitbox.x = 0;	
+	saucer.hitbox.y	= 0;
+	saucer.hitbox.w	= 30;
+	saucer.hitbox.h = 20;
+	saucer.alive = 0;
+    saucer.direction = right;
+}
+
+void bulletsInit(struct bullet_t *b, int max) {
+    for(int i = 0; i < max; i++) {
+        b[i].alive = 0;
+		b[i].hitbox.x = 0;
+		b[i].hitbox.y = 0;
+		b[i].hitbox.w = B_WIDTH;
+        b[i].hitbox.h = B_HEIGHT;
+    }
+}
+
+void backgroundDraw() {
+    SDL_Rect src;
+	src.x = 0;
+	src.y = 0;
+	src.w = screen->w;
+	src.h = screen->h;
+	SDL_FillRect(screen, &src, 0);
+}
+
 int main(){
 	printf("Hola Daniel");
 	return 0;
