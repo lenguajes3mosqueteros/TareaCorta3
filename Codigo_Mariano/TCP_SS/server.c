@@ -1,13 +1,18 @@
-#include<stdio.h>
-#include <winsock.h> 
-#include <netinet/in.h> 
+#include <stdio.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
 #include <stdlib.h> 
 #include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
+#include <sys/types.h>
+
+#pragma comment(lib, "Ws2_32.lib")
+
 #define MAX 80 
 #define PORT 8080 
 #define SA struct sockaddr 
+
+
 
 // Function designed for chat between client and server. 
 void func(int sockfd) 
