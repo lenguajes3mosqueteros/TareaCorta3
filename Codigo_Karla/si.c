@@ -1,6 +1,7 @@
-
-//gcc -o invaders.exe Codigo_Karla.c -lmingw32 -lSDLmain -lSDL
-//gcc -o invaders.exe si.c -lmingw32 -lSDLmain -lSDL
+//known bugs
+//some times the bullet wont go past through a base if it hits on the far left edge. cause unknowen
+//its the same bug that i found in my invaders drawing code. using the objects own hitbox as the SDL_Rect
+//as the destination rectangle to blit to. using a seperate local rect in the drawing code solves it.
 #include <stdlib.h>
 #include <stdio.h>
 #include <SDL/SDL.h>
@@ -26,7 +27,7 @@
 * Comment the hell out of this.
 */
 
-enum colour_t {red, green, purple};
+enum colour_t {yellow, blue, purple};
 enum direction_t {left, right, stationary};
 enum state_t {menu, options, game, game_over, pause};
 enum ck_t {magenta, lime};
@@ -55,7 +56,7 @@ struct enemy_t {
 
 struct invaders_t {
 
-	struct enemy_t enemy[5][10];
+	struct enemy_t enemy[1][3];
 	enum direction_t direction;
 	unsigned int killed;
 	int speed;
@@ -131,9 +132,9 @@ void init_invaders() {
 	int x = 0;
 	int y = 30;
 	
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 1; i++) {
 	
-		for (j = 0; j < 10; j++) {
+		for (j = 0; j < 3; j++) {
 		
 			invaders.enemy[i][j].alive = 1;
 			invaders.enemy[i][j].hitbox.x = x;
@@ -145,17 +146,14 @@ void init_invaders() {
 			
 			if (i == 0) {
 				
-				invaders.enemy[i][j].colour = purple;
 				invaders.enemy[i][j].points = 30;
 	
 			} else if (i >= 1 && i < 3) {
 			
-				invaders.enemy[i][j].colour = green;
 				invaders.enemy[i][j].points = 20;
 		
 			} else {
 		
-				invaders.enemy[i][j].colour = red;
 				invaders.enemy[i][j].points = 10;
 			}
 		}
@@ -172,7 +170,7 @@ void init_player() {
 	player.hitbox.y = HEIGHT - (P_HEIGHT + 10);
 	player.hitbox.w = P_WIDTH;
 	player.hitbox.h = P_HEIGHT;
-	player.lives = 5;
+	player.lives = 10;
 }
 
 //Initialize the bases starting position and dimensions
@@ -195,7 +193,7 @@ void init_bases() {
 		x += BASE_WIDTH + even_space; //distance apart
 	}
 
-	load_image("base.bmp", &base_img[0], magenta);
+	load_image("base.bmp", &base_img[0], blue);
 	load_image("base.bmp", &base_img[1], magenta);
 	load_image("base.bmp", &base_img[2], magenta);
 	load_image("base.bmp", &base_img[3], magenta);
@@ -319,9 +317,9 @@ void draw_invaders() {
 	src.w = E_WIDTH;
 	src.h = E_HEIGHT;
 	
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 1; i++) {
 		
-		for (j = 0; j < 10; j++) {
+		for (j = 0; j < 3; j++) {
 			
 			if (invaders.enemy[i][j].alive == 1) {
 				
@@ -560,9 +558,9 @@ void move_invaders_down() {
 
 	int i,j;
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 1; i++) {
 		
-		for (j = 0; j < 10; j++) {
+		for (j = 0; j < 3; j++) {
 		
 			invaders.enemy[i][j].hitbox.y += 15;
 		}
@@ -580,9 +578,9 @@ int move_invaders(int speed) {
 		
 		case left:
 		
-			for (i = 0; i < 10; i++) {
+			for (i = 0; i < 3; i++) {
 			
-				for (j = 0; j < 5; j++) {
+				for (j = 0; j < 1; j++) {
 				
 					if (invaders.enemy[j][i].alive == 1) {
 		
@@ -617,9 +615,9 @@ int move_invaders(int speed) {
 
 		case right:
 			
-			for (i = 9; i >= 0; i--) {
+			for (i = 2; i >= 0; i--) {
 			
-				for (j = 0; j < 5; j++) {
+				for (j = 0; j < 1; j++) {
 				
 					if (invaders.enemy[j][i].alive == 1) {
 					
@@ -889,9 +887,9 @@ void enemy_base_collision() {
 
 	int i,j,k,c;
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 1; i++) {
 
-		for (j = 0;  j < 10; j++) {
+		for (j = 0;  j < 3; j++) {
 		
 			for (k = 0;  k < BASE; k++) {
 			
@@ -914,9 +912,9 @@ void enemy_hit_collision() {
 
 	int i,j,k,c;
 	
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 1; i++) {
 		
-		for (j = 0; j < 10; j++) {
+		for (j = 0; j < 3; j++) {
 			
 			if (invaders.enemy[i][j].alive == 1) {
 			
@@ -1024,9 +1022,9 @@ int enemy_player_collision() {
 
 	int i,j,c;
 
-	for(i = 0; i < 5; i++) {
+	for(i = 0; i < 1; i++) {
 
-		for(j = 0; j < 10; j++) {
+		for(j = 0; j < 3; j++) {
 		
 			if (invaders.enemy[i][j].alive == 1) {
 					
@@ -1329,7 +1327,7 @@ int main(int argc, char *argv[]) {
 
 		if (state == menu) {
 			
-			char s[] = "Press SPACEBAR to start";
+			char s[] = "Presione tecla de espacio para iniciar";
 			SDL_Rect src[60];
 			
 			int i;
