@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <SDL/SDL.h/>
+#include "SDL/SDL.h"
 #define ANCHO_PANTALLA 800 
 #define ALTO_PANTALLA 600
 #define ANCHO 600 
