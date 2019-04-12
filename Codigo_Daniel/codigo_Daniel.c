@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <SDL2/SDL.h>
+#include <SDL/SDL.h/>
 #define ANCHO_PANTALLA 800 
 #define ALTO_PANTALLA 600
 #define ANCHO 600 
@@ -66,13 +66,13 @@ struct bala_t {
 
 static SDL_Surface* pantalla;
 static SDL_Surface* pantallaInicio;
-static SDL_Surface* mapaC;
+static SDL_Surface* cMap;
 static SDL_Surface* mapaInvasores;
 static SDL_Surface* imagenJugador;
 static SDL_Surface* imagenDisco;
 static SDL_Surface* imagenBase[4];
-static SDL_Surface* imagenDaño;
-static SDL_Surface* imagenDañoSuperior;
+static SDL_Surface* imagenDetrimento;
+static SDL_Surface* imagenDetrimentoSuperior;
 static SDL_Surface* imagenJuegoTerminado;
 struct puntuacion_t puntuacion;
 struct invasores_t invasores;
@@ -81,8 +81,8 @@ struct base_t base[BASE];
 struct jugador_t jugador;
 struct bala_t balas[BALAS_J];
 struct bala_t balasEnemigas[BALAS_E];
-int pausarDuracion;
-Uint32 pausarTiempo;
+int pausaDuracion;
+Uint32 pausaTiempo;
 enum estados_t estado;
 Uint32 duracionTitulo;
 
@@ -100,7 +100,7 @@ int dibujarChar(char c, int x, int y) {
     for(int i = 0; i < 4; i++) {
         for(int j = 0; j < strlen(map[i]); j++){
             if (c == map[i][j]) {
-                SDL_BlitSurface(mapaC, &fuente, pantalla, &destino);
+                SDL_BlitSurface(cMap, &fuente, pantalla, &destino);
                 return 0;
             }
             fuente.x += 20;
@@ -113,38 +113,44 @@ int dibujarChar(char c, int x, int y) {
 
 void dibujarString(char* s, int x, int y) {
 	for (int i = 0; i < strlen(s); i++) {
-		h(s[i], x, y);
+		dibujarChar(s[i], x, y);
 		x += 20;
     }
 }
 
-void pausa(int duracion) {
+void pausar(int duracion) {
     estado = pausa;
-    pausarTiempo = SDL_GetTicks();
-    pausarDuracion = duracion;
+    pausaTiempo = SDL_GetTicks();
+    pausaDuracion = duracion;
 }
 
-int cargarImagen(char* nombreArchivo, SDL_Surface* superficie, enum clavesColor_t claveColor) {
+int cargarImagen(char* nombreArchivo, SDL_Surface** superficie, enum clavesColor_t claveDeColor) {
     SDL_Surface* temp = SDL_LoadBMP(nombreArchivo);
     Uint32 claveColor;
     if (temp == NULL) {
         printf("Unable to load %s\n", nombreArchivo);
         return 1;
     }
-    if (claveColor == magenta) {
+    if (claveDeColor == magenta) {
         claveColor = SDL_MapRGB(temp->format, 255, 0, 255);
     }
-    else if (claveColor == lima) {
+    else if (claveDeColor == lima) {
         claveColor = SDL_MapRGB(temp->format, 0, 255, 0);
     }
     SDL_SetColorKey(temp, SDL_TRUE, claveColor);
-    superficie = SDL_DisplayFormat(temp);
-    if (superficie == NULL) {
+    (*superficie) = SDL_DisplayFormat(temp);
+    if ((*superficie) == NULL) {
         printf("Unable to convert bitmap\n");
         return 1;
     }
     SDL_FreeSurface(temp);
     return 0;
+}
+
+void iniciarPuntuacion() {
+    puntuacion.disparos = 0;
+    puntuacion.puntos = 0;
+    puntuacion.nivel = 1;
 }
 
 void iniciarInvasores() {
@@ -271,7 +277,7 @@ void dibujarPantallaInicio() {
     SDL_BlitSurface(pantallaInicio, &fuente, pantalla, &destino);
 }
 
-void dibujardisco() {
+void dibujarDisco() {
     SDL_Rect fuente;
 	fuente.x = 0;
 	fuente.y = 0;
@@ -474,7 +480,7 @@ void moverJugador(enum direcciones_t direccion) {
     }
 }
 
-void moverdisco() {
+void moverDisco() {
     if (disco.vivo == 1) {
         if (disco.direccion == izquierda) {
             disco.limite.x -= 5;
@@ -511,7 +517,7 @@ int colision(SDL_Rect a, SDL_Rect b) {
 	return 1;
 }
 
-void dañoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
+void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
     int x, y;
     SDL_Rect fuente, destino;
     SDL_LockSurface(imagenBase[b]);
@@ -536,7 +542,7 @@ void dañoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
 				destino.w = 11;
 				destino.h = 15;
                 SDL_UnlockSurface(imagenBase[b]);
-                SDL_BlitSurface(imagenDaño, &fuente, imagenBase[b], &destino);
+                SDL_BlitSurface(imagenDetrimento, &fuente, imagenBase[b], &destino);
                 break;
             }
             y--;
@@ -561,7 +567,7 @@ void dañoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
 				destino.w = 11;
 				destino.h = 15;
                 SDL_UnlockSurface(imagenBase[b]);
-                SDL_BlitSurface(imagenDaño, &fuente, imagenBase[b], &destino);
+                SDL_BlitSurface(imagenDetrimento, &fuente, imagenBase[b], &destino);
                 break;
             }
             y++;
@@ -570,7 +576,7 @@ void dañoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
     SDL_UnlockSurface(imagenBase[b]);
 }
 
-void dañoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indice) {
+void DetrimentoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indice) {
     int x, y;
     SDL_Rect destino;
     if (invasores.direccion == derecha) {
@@ -598,7 +604,7 @@ void dañoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indice) {
     }
 }
 
-void colisionEnemiga() {
+void colisionEnemigoBase() {
     int c;
     for(int i = 0; i < 5; i++) {
         for(int j = 0; j < 10; j++) {
@@ -606,7 +612,7 @@ void colisionEnemiga() {
                 if (invasores.enemigos[i][j].vivo == 1) {
                     c = colision(invasores.enemigos[i][j].limite, base[k].limite);
                     if (c == 1) {
-                        dañoEnemigo(&invasores.enemigos[i][j], &base[k], k);
+                        DetrimentoEnemigo(&invasores.enemigos[i][j], &base[k], k);
                     }
                 }
             }
@@ -622,11 +628,34 @@ void colisionJugador() {
             if (c == 1) {
                 if (jugador.vidas >= 0) {
                     jugador.vidas--;
-                    pausa(500);
+                    pausar(500);
                 }
             }
         }
     } 
+}
+
+void colisionEnemiga() {
+    int c;
+    for(int i = 0; i < 5; i++) {
+        for(int j = 0; j < 10; j++) {
+            if (invasores.enemigos[i][j].vivo == 1) {
+                for(int k = 0; k < BALAS_J; k++) {
+                    if (balas[k].vivo == 1) {
+                        c = colision(balas[k].limite, invasores.enemigos[i][j].limite);
+                        if (c == 1) {
+                            invasores.enemigos[i][j].vivo = 0;
+                            balas[k].vivo = 0;
+                            balas[k].limite.x = 0;
+                            balas[k].limite.y = 0;
+                            invasores.asesinado++;
+                            puntuacion.puntos += invasores.enemigos[i][j].puntos;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void colisionDisco() {
@@ -673,7 +702,7 @@ int colisionJugadorEnemigo() {
                 c = colision(jugador.limite, invasores.enemigos[i][j].limite);
                 if (c == 1) {
                     jugador.vidas--;
-                    pausa(500);
+                    pausar(500);
                     iniciarInvasores();
                     iniciarBases();
                     return 1;
@@ -691,7 +720,7 @@ void colisionBalaBase(struct bala_t* bala, int max, int l) {
             if (bala[i].vivo == 1) {
                 c = colision(bala[i].limite, base[j].limite);
                 if (c == 1) {
-                    dañoBala(&base[j], j, &bala[i], l);
+                    DetrimentoBala(&base[j], j, &bala[i], l);
                 }
             }
         }
@@ -722,7 +751,7 @@ void calcularNivel() {
         iniciarInvasores();
         iniciarBases();
         iniciarDisco();
-        pausa(500);
+        pausar(500);
     }
 }
 
@@ -754,12 +783,162 @@ void enemigoIA() {
 }
 
 void juegoPausado() {
-    if (SDL_GetTicks() > pausarTiempo + pausarDuracion) {
+    if (SDL_GetTicks() > (pausaTiempo + pausaDuracion)) {
         estado = juego;
     }
 }
 
 int main(){
-	printf("Hola Daniel");
+	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        printf("Unable to initialize SDL: %s\n", SDL_GetError());
+        return 1;
+    }
+    atexit(SDL_Quit);
+    SDL_WM_SetCaption("Space Invaders", "P");
+    pantalla = SDL_SetVideoMode(ANCHO_PANTALLA, ALTO_PANTALLA, 8, SDL_DOUBLEBUF);    
+    if (pantalla == NULL) {
+        printf("Unable to set video mode: %s\n", SDL_GetError());
+        return 1;
+    }
+    cargarImagen("tilescreen.bmp", &pantallaInicio, magenta);
+    cargarImagen("cmap.bmp", &cMap, magenta);
+    cargarImagen("invaders.bmp", &mapaInvasores, magenta);
+    cargarImagen("player.bmp", &imagenJugador, magenta);
+    cargarImagen("saucer.bmp", &imagenDisco, magenta);
+    cargarImagen("gameover.bmp", &imagenJuegoTerminado, magenta);
+    cargarImagen("damage.bmp", &imagenDetrimento, magenta);
+    cargarImagen("damagetop.bmp", &imagenDetrimentoSuperior, magenta);
+    Uint32 sigSegundo = SDL_GetTicks();
+    int dormir = 0;
+    Uint8* estadoTecla = 0;
+    int parar = 0;
+    SDL_Event evento;
+    iniciarPuntuacion();
+    iniciarInvasores();
+    iniciarBases();
+    iniciarJugador();
+    iniciarDisco();
+    iniciarBalas(balas, BALAS_J);
+    iniciarBalas(balasEnemigas, BALAS_E);
+    estado = menu;
+    duracionTitulo = SDL_GetTicks();
+    while(parar == 0){
+        estadoTecla = SDL_GetKeyboardState(NULL);
+        while(SDL_PollEvent(&evento)){
+            switch (evento.type) {
+                case SDL_KEYDOWN:
+                    switch (evento.key.keysym.sym)
+                    {
+                        case SDLK_ESCAPE:
+                            parar = 1;
+                        break;
+                        case SDLK_SPACE:
+                            if (estado == menu) {
+                                estado = juego;
+                            }
+                            else if (estado == juego) {
+                                disparoJugador();
+                                discoIA();
+                            }
+                            else if (estado == juegoTerminado) {
+                                iniciarInvasores();
+                                iniciarBases();
+                                iniciarPuntuacion();
+                                iniciarJugador();
+                                estado = juego;
+                            }
+                        break;
+                        default:
+                        break;
+                    }
+                default:
+                break;
+            }
+        }
+        dibujarFondo();
+        if (estado == menu) {
+            char inicio[] = "Presione la barra espaciadora para comenzar";
+            SDL_Rect fuente[60];
+            if (duracionTitulo + 2000 < SDL_GetTicks()) {
+                fuente[0].x = 180;
+				fuente[0].y = 40;
+				fuente[0].w = 440;
+				fuente[0].h = 230;
+                SDL_FillRect(pantalla, &fuente[0], 248);
+            } else {
+                int y = 0;
+                for(int i = 0; i < 60; i++)
+                {
+                    fuente[i].x = 0;
+					fuente[i].y = y;
+					fuente[i].w = ANCHO_PANTALLA;
+					fuente[i].h = 10;
+					SDL_FillRect(pantalla, &fuente[i], 227);
+                    y += 10; 
+                }
+                for (int i = 0; i < 60; i++) {
+                    SDL_FillRect(pantalla, &fuente[i], rand() % 255);
+                }
+            }
+            dibujarPantallaInicio();
+            dibujarString(inicio, (ANCHO_PANTALLA / 2) - (strlen(inicio) * 10), 500);
+        }
+        else if (estado == juego) {
+            if (estadoTecla[SDLK_LEFT]) {
+                moverJugador(izquierda);
+            }
+            else if (estadoTecla[SDLK_RIGHT]) {
+                moverJugador(derecha);
+            }
+            dibujarHUD();
+            dibujarJugador();
+            dibujarBases();
+            dibujarInvasores();
+            dibujarDisco();
+            dibujarBalas(balas, BALAS_J);
+            dibujarBalas(balasEnemigas, BALAS_E);
+            colisionEnemiga();
+            colisionJugador();
+            colisionEnemigoBase();
+            colisionDisco();
+            colisionBalaBase(balasEnemigas, BALAS_E, 1);
+            colisionBalaBase(balas, BALAS_J, 0);
+            colisionJugadorEnemigo();
+            moverInvasores(invasores.velocidad);
+            moverDisco();
+            moverBalas(balas, BALAS_J, -30);
+            moverBalas(balasEnemigas, BALAS_E, 15);
+            calcularNivel();
+            enemigoIA();
+            juegoTerminadoIA();
+            juegoPausado();
+        }
+        else if (estado == juegoTerminado) {
+            dibujarHUD();
+            dibujarJugador();
+            dibujarBases();
+            dibujarInvasores();
+            dibujarDisco();
+            dibujarBalas(balas, BALAS_J);
+            dibujarBalas(balasEnemigas, BALAS_E);
+            dibujarJuegoTerminado();
+        }
+        else if (estado == pausa) {
+            dibujarHUD();
+            dibujarJugador();
+            dibujarBases();
+            dibujarInvasores();
+            dibujarDisco();
+            dibujarBalas(balas, BALAS_J);
+            dibujarBalas(balasEnemigas, BALAS_E);
+            juegoPausado();
+        }
+        SDL_Flip(pantalla);
+        sigSegundo += 1000 / 30;
+        dormir = sigSegundo - SDL_GetTicks();
+        if (dormir >= 0) {
+            SDL_Delay(dormir);
+        }
+    }
 	return 0;
 }
