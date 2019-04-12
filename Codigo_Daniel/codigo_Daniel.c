@@ -823,7 +823,7 @@ int main(){
     estado = menu;
     duracionTitulo = SDL_GetTicks();
     while(parar == 0){
-        estadoTecla = SDL_GetKeyboardState(NULL);
+        estadoTecla = SDL_GetKeyState(NULL);
         while(SDL_PollEvent(&evento)){
             switch (evento.type) {
                 case SDL_KEYDOWN:
