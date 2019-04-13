@@ -607,7 +607,7 @@ void colisionEnemigoBase() {
     int c;
     for(int i = 0; i < 5; i++) {
         for(int j = 0; j < 10; j++) {
-            for(int k = 0; k < BASE; i++) {
+            for(int k = 0; k < BASE; k++) {
                 if (invasores.enemigos[i][j].vivo == 1) {
                     c = colision(invasores.enemigos[i][j].limite, base[k].limite);
                     if (c == 1) {
@@ -887,33 +887,19 @@ int main(){
             else if (estadoTecla[SDLK_RIGHT]) {
                 moverJugador(derecha);
             }
-            printf("%s\n", "Aprovecha el bug");
             dibujarHUD();
-            printf("%s\n", "Aprovecha el bug");
             dibujarJugador();
-            printf("%s\n", "Aprovecha el bug");
             dibujarBases();
-            printf("%s\n", "Aprovecha el bug");
             dibujarInvasores();
-            printf("%s\n", "Aprovecha el bug");
             dibujarDisco();
-            printf("%s\n", "Aprovecha el bug");
             dibujarBalas(balas, BALAS_J);
-            printf("%s\n", "Aprovecha el bug");
             dibujarBalas(balasEnemigas, BALAS_E);
-            printf("%s\n", "Aprovecha el bug");
             colisionEnemiga();
-            printf("%s\n", "Aprovecha el bug");
             colisionJugador();
-            printf("%s\n", "Aprovecha el bug");
             colisionEnemigoBase();
-            printf("%s\n", "Aprovecha el bug");
             colisionDisco();
-            printf("%s\n", "Aprovecha el bug");
             colisionBalaBase(balasEnemigas, BALAS_E, 1);
-            printf("%s\n", "Aprovecha el bug");
             colisionBalaBase(balas, BALAS_J, 0);
-            printf("%s\n", "Aprovecha el bug");
             colisionJugadorEnemigo();
             moverInvasores(invasores.velocidad);
             moverDisco();
