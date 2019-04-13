@@ -23,27 +23,27 @@ enum estados_t {menu, opciones, juego, juegoTerminado, pausa};
 enum clavesColor_t {magenta, lima};
 
 struct puntuacion_t {
-    int disparos;
-    int puntos;
-    int nivel;
+    unsigned int disparos;
+    unsigned int puntos;
+    unsigned int nivel;
 };
 
 struct disco_t {
     SDL_Rect limite;
-    int vivo;
+    unsigned int vivo;
     enum direcciones_t direccion;
 };
 
 struct enemigo_t {
     SDL_Rect limite;
-    int vivo;
-    int puntos;
+    unsigned int vivo;
+    unsigned int puntos;
 };
 
 struct invasores_t {
     struct enemigo_t enemigos[5][10];
     enum direcciones_t direccion;
-    int asesinado;
+    unsigned int asesinado;
     int velocidad;
     int estado;
     int estadoVelocidad;
@@ -61,7 +61,7 @@ struct jugador_t {
 
 struct bala_t {
     SDL_Rect limite;
-    int vivo;
+    unsigned int vivo;
 };
 
 static SDL_Surface* pantalla;
@@ -81,7 +81,7 @@ struct base_t base[BASE];
 struct jugador_t jugador;
 struct bala_t balas[BALAS_J];
 struct bala_t balasEnemigas[BALAS_E];
-int pausaDuracion;
+unsigned int pausaDuracion;
 Uint32 pausaTiempo;
 enum estados_t estado;
 Uint32 duracionTitulo;
@@ -118,7 +118,7 @@ void dibujarString(char s[], int x, int y) {
     }
 }
 
-void pausar(int duracion) {
+void pausar(unsigned int duracion) {
     estado = pausa;
     pausaTiempo = SDL_GetTicks();
     pausaDuracion = duracion;
@@ -214,8 +214,8 @@ void iniciarBases() {
 
 void iniciarDisco() {
     disco.limite.x = 0;	
-	disco.limite.y	= 0;
-	disco.limite.w	= 30;
+	disco.limite.y = 0;
+	disco.limite.w = 30;
 	disco.limite.h = 20;
 	disco.vivo = 0;
     disco.direccion = derecha;
@@ -307,11 +307,11 @@ void dibujarInvasores() {
                 }
                 else if (i > 0 && i < 3) {
                     if (invasores.estado == 0) {
-                        fuente.x = ALTO_E;
-                        fuente.y = 0;
+                        fuente.x = 0;
+                        fuente.y = ALTO_E;
                     } else {
                         fuente.x = 30;
-                        fuente.y = 0;
+                        fuente.y = ALTO_E;
                     } 
                 } else {
                     if (invasores.estado == 0) {
@@ -855,7 +855,7 @@ int main(){
         }
         dibujarFondo();
         if (estado == menu) {
-            char inicio[] = "Presione la barra espaciadora para comenzar";
+            char inicio[] = "Presione espacio para comenzar";
             SDL_Rect fuente[60];
             if (duracionTitulo + 2000 < SDL_GetTicks()) {
                 fuente[0].x = 180;
@@ -888,13 +888,21 @@ int main(){
             else if (estadoTecla[SDLK_RIGHT]) {
                 moverJugador(derecha);
             }
+            printf("%s\n", "Aprovecha el bug");
             dibujarHUD();
+            printf("%s\n", "Aprovecha el bug");
             dibujarJugador();
+            printf("%s\n", "Aprovecha el bug");
             dibujarBases();
+            printf("%s\n", "Aprovecha el bug");
             dibujarInvasores();
+            printf("%s\n", "Aprovecha el bug");
             dibujarDisco();
+            printf("%s\n", "Aprovecha el bug");
             dibujarBalas(balas, BALAS_J);
+            printf("%s\n", "Aprovecha el bug");
             dibujarBalas(balasEnemigas, BALAS_E);
+            printf("%s\n", "Aprovecha el bug");
             colisionEnemiga();
             colisionJugador();
             colisionEnemigoBase();
