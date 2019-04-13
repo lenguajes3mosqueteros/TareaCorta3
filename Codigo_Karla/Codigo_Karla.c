@@ -5,6 +5,45 @@
 #include <stdio.h>
 #include <SDL/SDL.h>
 
+#include <netdb.h> 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <sys/socket.h> 
+
+
+
+/**
+ * #################################################################
+ **/
+
+
+#define MAX 80 
+#define PORT 8080 
+#define SA struct sockaddr 
+void func(int sockfd) 
+{ 
+	char buff[MAX]; 
+	int n; 
+	for (;;) { 
+		bzero(buff, sizeof(buff)); 
+		printf("Enter the string : "); 
+		n = 0; 
+		while ((buff[n++] = getchar()) != '\n') 
+			; 
+		write(sockfd, buff, sizeof(buff)); 
+		bzero(buff, sizeof(buff)); 
+		read(sockfd, buff, sizeof(buff)); 
+		printf("From Server : %s", buff); 
+		if ((strncmp(buff, "exit", 4)) == 0) { 
+			printf("Client Exit...\n"); 
+			break; 
+		} 
+	} 
+} 
+/**
+ * #################################################################
+ **/
 #define SCREEN_WIDTH 800 
 #define SCREEN_HEIGHT 600
 #define E_WIDTH 30
@@ -1072,7 +1111,7 @@ void bullet_base_collision(struct bullet_t b[], int max, int l) {
 //Determine for game over event
 void game_over_ai() {
 	
-	if (player.lives < 0) {
+	if (player.lives == 0) {
 		
 		state = game_over;
 	}
@@ -1228,6 +1267,36 @@ int load_image(char filename[], SDL_Surface **surface, enum ck_t colour_key) {
 
 //Main program
 int main(int argc, char *argv[]) {
+	int sockfd, connfd; 
+	struct sockaddr_in servaddr, cli; 
+
+	// socket create and varification 
+	sockfd = socket(AF_INET, SOCK_STREAM, 0); 
+	if (sockfd == -1) { 
+		printf("socket creation failed...\n"); 
+		exit(0); 
+	} 
+	else
+		printf("Socket successfully created..\n"); 
+	bzero(&servaddr, sizeof(servaddr)); 
+
+	// assign IP, PORT 
+	servaddr.sin_family = AF_INET; 
+	servaddr.sin_addr.s_addr = inet_addr("192.168.1.142"); 
+	servaddr.sin_port = htons(PORT); 
+
+	// connect the client socket to server socket 
+	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) { 
+		printf("connection with the server failed...\n"); 
+		exit(0); 
+	} 
+	else
+		printf("connected to the server..\n"); 
+
+	// function for chat 
+	//func(sockfd); 
+
+	
 	
 	/* Initialize SDL’s video system and check for errors */
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -1295,6 +1364,8 @@ int main(int argc, char *argv[]) {
 						case SDLK_ESCAPE:
 							
 							quit = 1;
+							// close the socket 
+							close(sockfd); 
 						break;
 						
 						case SDLK_SPACE:	
@@ -1373,7 +1444,8 @@ int main(int argc, char *argv[]) {
 
 			//move player
 			if (keystate[SDLK_LEFT]) {
-				
+				char buff[MAX] = "Se ha presionado left"; 
+				write(sockfd, buff, sizeof(buff)); 
 				move_player(left);
 			}
 
