@@ -111,7 +111,7 @@ int dibujarChar(char c, int x, int y) {
     return 0;
 }
 
-void dibujarString(char* s, int x, int y) {
+void dibujarString(char s[], int x, int y) {
 	for (int i = 0; i < strlen(s); i++) {
 		dibujarChar(s[i], x, y);
 		x += 20;
@@ -124,8 +124,9 @@ void pausar(int duracion) {
     pausaDuracion = duracion;
 }
 
-int cargarImagen(char* nombreArchivo, SDL_Surface** superficie, enum clavesColor_t claveDeColor) {
-    SDL_Surface* temp = SDL_LoadBMP(nombreArchivo);
+int cargarImagen(char nombreArchivo[], SDL_Surface** superficie, enum clavesColor_t claveDeColor) {
+    SDL_Surface* temp;
+    temp = SDL_LoadBMP(nombreArchivo);
     Uint32 claveColor;
     if (temp == NULL) {
         printf("Unable to load %s\n", nombreArchivo);
@@ -137,7 +138,7 @@ int cargarImagen(char* nombreArchivo, SDL_Surface** superficie, enum clavesColor
     else if (claveDeColor == lima) {
         claveColor = SDL_MapRGB(temp->format, 0, 255, 0);
     }
-    SDL_SetColorKey(temp, SDL_TRUE, claveColor);
+    SDL_SetColorKey(temp, SDL_SRCCOLORKEY, claveColor);
     (*superficie) = SDL_DisplayFormat(temp);
     if ((*superficie) == NULL) {
         printf("Unable to convert bitmap\n");
@@ -220,7 +221,7 @@ void iniciarDisco() {
     disco.direccion = derecha;
 }
 
-void iniciarBalas(struct bala_t *b, int max) {
+void iniciarBalas(struct bala_t b[], int max) {
     for(int i = 0; i < max; i++) {
         b[i].vivo = 0;
 		b[i].limite.x = 0;
@@ -249,17 +250,17 @@ void dibujarHUD() {
     char etiquetaPuntuacion[] = "Puntuacion";
     dibujarString(etiquetaPuntuacion, ANCHO, 0);
     char etiquetaNum[10];
-    SDL_snprintf(etiquetaNum, 10, "%d", puntuacion.puntos);
+    snprintf(etiquetaNum, 10, "%d", puntuacion.puntos);
     dibujarString(etiquetaNum, ANCHO, 20);
     char nivel[] = "Nivel";
     dibujarString(nivel, ANCHO, 60);
     char nivelNum[2];
-    SDL_snprintf(nivelNum, 2, "%d", puntuacion.nivel);
+    snprintf(nivelNum, 2, "%d", puntuacion.nivel);
     dibujarString(nivelNum, ANCHO, 80);
     char vidas[] = "vidas";
     dibujarString(vidas, ANCHO, 120);
     char limitesNum[2];
-    SDL_snprintf(limitesNum, 2, "%d", jugador.vidas);
+    snprintf(limitesNum, 2, "%d", jugador.vidas);
     dibujarString(limitesNum, ANCHO, 140);
 }
 
@@ -340,7 +341,6 @@ void dibujarBases() {
     for(int i = 0; i < BASE; i++) {
         SDL_BlitSurface(imagenBase[i], &fuente, pantalla, &base[i].limite);
     }
-    
 }
 
 void dibujarJugador() {
@@ -352,7 +352,7 @@ void dibujarJugador() {
 	SDL_BlitSurface(imagenJugador, &fuente, pantalla, &jugador.limite);
 }
 
-void dibujarBalas(struct bala_t* b, int max) {
+void dibujarBalas(struct bala_t b[], int max) {
     for(int i = 0; i < max; i++) {
         if (b[i].vivo == 1) {
             SDL_FillRect(pantalla, &b[i].limite, 255);
@@ -391,7 +391,7 @@ void velocidadInvasores() {
     }
 }
 
-int moverBalas(struct bala_t* b, int max, int velocidad) {
+int moverBalas(struct bala_t b[], int max, int velocidad) {
     for(int i = 0; i < max; i++) {
         if (b[i].vivo == 1) {
             b[i].limite.y += velocidad;
@@ -517,7 +517,7 @@ int colision(SDL_Rect a, SDL_Rect b) {
 	return 1;
 }
 
-void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
+void DetrimentoBala(struct base_t base[], int b, struct bala_t bala[], int l) {
     int x, y;
     SDL_Rect fuente, destino;
     SDL_LockSurface(imagenBase[b]);
@@ -576,7 +576,7 @@ void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
     SDL_UnlockSurface(imagenBase[b]);
 }
 
-void DetrimentoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indice) {
+void DetrimentoEnemigo(struct enemigo_t enemigo[], struct base_t base[], int indice) {
     int x, y;
     SDL_Rect destino;
     if (invasores.direccion == derecha) {
@@ -713,7 +713,7 @@ int colisionJugadorEnemigo() {
     return 0;
 }
 
-void colisionBalaBase(struct bala_t* bala, int max, int l) {
+void colisionBalaBase(struct bala_t bala[], int max, int l) {
     int c;
     for(int i = 0; i < max; i++) {
         for(int j = 0; j < BASE; j++) {
@@ -800,7 +800,7 @@ int main(){
         printf("Unable to set video mode: %s\n", SDL_GetError());
         return 1;
     }
-    cargarImagen("tilescreen.bmp", &pantallaInicio, magenta);
+    cargarImagen("titlescreen.bmp", &pantallaInicio, magenta);
     cargarImagen("cmap.bmp", &cMap, magenta);
     cargarImagen("invaders.bmp", &mapaInvasores, magenta);
     cargarImagen("player.bmp", &imagenJugador, magenta);
@@ -827,8 +827,7 @@ int main(){
         while(SDL_PollEvent(&evento)){
             switch (evento.type) {
                 case SDL_KEYDOWN:
-                    switch (evento.key.keysym.sym)
-                    {
+                    switch (evento.key.keysym.sym) {
                         case SDLK_ESCAPE:
                             parar = 1;
                         break;
@@ -851,7 +850,6 @@ int main(){
                         default:
                         break;
                     }
-                default:
                 break;
             }
         }
