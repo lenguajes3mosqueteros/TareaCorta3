@@ -47,7 +47,7 @@ struct invasores_t {
     int velocidad;
     int estado;
     int estadoVelocidad;
-    Uint32 estadoduracion;
+    Uint32 estadoDuracion;
 };
 
 struct base_t {
@@ -160,7 +160,7 @@ void iniciarInvasores() {
     invasores.estado = 0;
     invasores.asesinado = 0;
     invasores.estadoVelocidad = 1000;
-    invasores.estadoduracion = SDL_GetTicks();
+    invasores.estadoDuracion = SDL_GetTicks();
     int x = 0;
     int y = 30;
     for(int i = 0; i < 5; i++) {
@@ -386,7 +386,7 @@ void velocidadInvasores() {
             break;
         case 30:
             invasores.velocidad = 2;
-            invasores.estadoVelocidad = 800;
+            invasores.estadoVelocidad = 200;
             break;
     }
 }
@@ -398,7 +398,7 @@ int moverBalas(struct bala_t b[], int max, int velocidad) {
             if (b[i].limite.y <= 0) {
                 b[i].vivo = 0;
             }
-            else if (b[i].limite.y + b[i].limite.y >= ALTO) {
+            if (b[i].limite.y + b[i].limite.y >= ALTO) {
                 b[i].vivo = 0;
             }
         }
@@ -416,55 +416,54 @@ void moverInvasoresVertical() {
 
 int moverInvasores(int velocidad) {
     velocidadInvasores();
-    switch (invasores.direccion)
-    {
+    switch (invasores.direccion) {
         case izquierda:
             for(int i = 0; i < 10; i++) {
-                for(int j = 0; j < 5; j++){
+                for(int j = 0; j < 5; j++) {
                     if (invasores.enemigos[j][i].vivo == 1) {
                         if (invasores.enemigos[j][i].limite.x <= 0) {
                             invasores.direccion = derecha;
                             moverInvasoresVertical();
                             return 0;
                         }
-                        if (invasores.estadoduracion + invasores.estadoVelocidad < SDL_GetTicks()) {
-                            invasores.estadoduracion = SDL_GetTicks();
+                        if (invasores.estadoDuracion + invasores.estadoVelocidad < SDL_GetTicks()) {
+                            invasores.estadoDuracion = SDL_GetTicks();
                             if (invasores.estado == 1) {
                                 invasores.estado = 0;
                             } else {
                                 invasores.estado = 1;
                             }
                         }
-                        invasores.enemigos[i][j].limite.x -= invasores.velocidad;
-                    }
+                        invasores.enemigos[j][i].limite.x -= invasores.velocidad;
+                    }  
                 }
             }
             break;
         case derecha:
             for(int i = 9; i >= 0; i--) {
-                for(int j = 0; j < 5; i++) {
+                for(int j = 0; j < 5; j++) {
                     if (invasores.enemigos[j][i].vivo == 1) {
                         if (invasores.enemigos[j][i].limite.x + ANCHO_E >= ANCHO) {
                             invasores.direccion = izquierda;
                             moverInvasoresVertical();
                             return 0;
                         }
-                    } 
-                   if (invasores.estadoduracion + invasores.estadoVelocidad < SDL_GetTicks()) {
-                        invasores.estadoduracion = SDL_GetTicks();
-                        if (invasores.estado == 1) {
-                            invasores.estado = 0;
-                        } else {
-                            invasores.estado = 1;
+                        if (invasores.estadoDuracion + invasores.estadoVelocidad < SDL_GetTicks()) {
+                            invasores.estadoDuracion = SDL_GetTicks();
+                            if (invasores.estado == 1) {
+                                invasores.estado = 0;
+                            } else {
+                                invasores.estado = 1;
+                            }
                         }
-                    }
-                    invasores.enemigos[i][j].limite.x -= invasores.velocidad;
+                        invasores.enemigos[j][i].limite.x += invasores.velocidad;
+                    }  
                 }
             }
+            break;
         default:
             break;
     }
-    return 0;
 }
 
 void moverJugador(enum direcciones_t direccion) {
@@ -517,7 +516,7 @@ int colision(SDL_Rect a, SDL_Rect b) {
 	return 1;
 }
 
-void DetrimentoBala(struct base_t base[], int b, struct bala_t bala[], int l) {
+void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
     int x, y;
     SDL_Rect fuente, destino;
     SDL_LockSurface(imagenBase[b]);
@@ -525,20 +524,20 @@ void DetrimentoBala(struct base_t base[], int b, struct bala_t bala[], int l) {
     int pix;
     if (l == 0) {
         x = (bala->limite.x + 3) - base->limite.x;
-        y = base->limite.y - 1;
+        y = base->limite.h - 1;
         for(int i = 0; i < base->limite.h; i++) {
             if (x >= ANCHO_BASE) {
                 x = ANCHO_BASE - 1;
             }
             pix = y * imagenBase[b]->pitch + x;
-            if (pixeles[pix] != 200) {
+            if (pixeles[pix] != 227) {
                 bala->vivo = 0;
                 fuente.x = 0;
 				fuente.y = 0;
 				fuente.w = 11;
 				fuente.h = 15;
 				destino.x = x - 3;
-				destino.y = y - 14;
+				destino.y = y;
 				destino.w = 11;
 				destino.h = 15;
                 SDL_UnlockSurface(imagenBase[b]);
@@ -576,7 +575,7 @@ void DetrimentoBala(struct base_t base[], int b, struct bala_t bala[], int l) {
     SDL_UnlockSurface(imagenBase[b]);
 }
 
-void DetrimentoEnemigo(struct enemigo_t enemigo[], struct base_t base[], int indice) {
+void DetrimentoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indice) {
     int x, y;
     SDL_Rect destino;
     if (invasores.direccion == derecha) {
@@ -591,8 +590,8 @@ void DetrimentoEnemigo(struct enemigo_t enemigo[], struct base_t base[], int ind
         }
     }
     else if (invasores.direccion == izquierda) {
-        x = (enemigo->limite.x + (enemigo->limite.w - 1)) + invasores.velocidad;
-        x = x - base->limite.x;
+        x = (enemigo->limite.x + (enemigo->limite.w - 1)) - invasores.velocidad;
+        x -= base->limite.x;
         y = enemigo->limite.y - base->limite.y;
         if (x < base->limite.w) {
             destino.x = x;
@@ -904,11 +903,17 @@ int main(){
             dibujarBalas(balasEnemigas, BALAS_E);
             printf("%s\n", "Aprovecha el bug");
             colisionEnemiga();
+            printf("%s\n", "Aprovecha el bug");
             colisionJugador();
+            printf("%s\n", "Aprovecha el bug");
             colisionEnemigoBase();
+            printf("%s\n", "Aprovecha el bug");
             colisionDisco();
+            printf("%s\n", "Aprovecha el bug");
             colisionBalaBase(balasEnemigas, BALAS_E, 1);
+            printf("%s\n", "Aprovecha el bug");
             colisionBalaBase(balas, BALAS_J, 0);
+            printf("%s\n", "Aprovecha el bug");
             colisionJugadorEnemigo();
             moverInvasores(invasores.velocidad);
             moverDisco();
