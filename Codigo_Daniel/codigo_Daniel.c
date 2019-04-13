@@ -537,7 +537,7 @@ void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
 				fuente.w = 11;
 				fuente.h = 15;
 				destino.x = x - 3;
-				destino.y = y;
+				destino.y = y - 14;
 				destino.w = 11;
 				destino.h = 15;
                 SDL_UnlockSurface(imagenBase[b]);
@@ -555,14 +555,14 @@ void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
                 x = ANCHO_BASE - 1;
             }
             pix = y * imagenBase[b]->pitch + x;
-            if (pixeles[pix] != 200) {
+            if (pixeles[pix] != 227) {
                 bala->vivo = 0;
                 fuente.x = 0;
 				fuente.y = 0;
 				fuente.w = 11;
 				fuente.h = 15;
 				destino.x = x - 3;
-				destino.y = y - 14;
+				destino.y = y;
 				destino.w = 11;
 				destino.h = 15;
                 SDL_UnlockSurface(imagenBase[b]);
@@ -684,7 +684,7 @@ void colisionDisco() {
                         disco.direccion = derecha;
                     }
                     else if (disco.direccion == derecha) {
-                        disco.limite.x = ANCHO - disco.limite.x;
+                        disco.limite.x = ANCHO - disco.limite.w;
                         disco.direccion = izquierda;
                     }
                 }
@@ -734,7 +734,7 @@ void juegoTerminadoIA() {
 
 void disparoJugador() {
     for(int i = 0; i < BALAS_J; i++) {
-        if (balas[i].vivo == 1) {
+        if (balas[i].vivo == 0) {
             puntuacion.disparos++;
             balas[i].limite.x = jugador.limite.x + (ANCHO_J / 2);
             balas[i].limite.y = jugador.limite.y - (balas[i].limite.h + 10);
@@ -771,8 +771,13 @@ void enemigoIA() {
                     for(int k = 0; k < BALAS_E; k++) {
                         if (balasEnemigas[k].vivo == 0) {
                             int r = rand() % 30;
+                            if (r == 1) {
+                                balasEnemigas[k].limite.x = inicio + (ANCHO_E / 2);
+                                balasEnemigas[k].limite.y = invasores.enemigos[j][i].limite.y;
+                                balasEnemigas[k].vivo = 1;
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -884,7 +889,7 @@ int main(){
             if (estadoTecla[SDLK_LEFT]) {
                 moverJugador(izquierda);
             }
-            else if (estadoTecla[SDLK_RIGHT]) {
+            if (estadoTecla[SDLK_RIGHT]) {
                 moverJugador(derecha);
             }
             dibujarHUD();
