@@ -125,8 +125,7 @@ void pausar(unsigned int duracion) {
 }
 
 int cargarImagen(char nombreArchivo[], SDL_Surface** superficie, enum clavesColor_t claveDeColor) {
-    SDL_Surface* temp;
-    temp = SDL_LoadBMP(nombreArchivo);
+    SDL_Surface* temp = SDL_LoadBMP(nombreArchivo);
     Uint32 claveColor;
     if (temp == NULL) {
         printf("Unable to load %s\n", nombreArchivo);
@@ -163,8 +162,8 @@ void iniciarInvasores() {
     invasores.estadoDuracion = SDL_GetTicks();
     int x = 0;
     int y = 30;
-    for(int i = 0; i < 5; i++) {
-        for(int j = 0; j < 10; j++) {
+    for(int i = 0; i < 2; i++) {
+        for(int j = 0; j < 5; j++) {
             invasores.enemigos[i][j].vivo = 1;
             invasores.enemigos[i][j].limite.x = x;
             invasores.enemigos[i][j].limite.y = y;
@@ -226,8 +225,8 @@ void iniciarBalas(struct bala_t b[], int max) {
         b[i].vivo = 0;
 		b[i].limite.x = 0;
 		b[i].limite.y = 0;
-		b[i].limite.w = ANCHO_BASE;
-        b[i].limite.h = ALTO_BASE;
+		b[i].limite.w = ANCHO_B;
+        b[i].limite.h = ALTO_B;
     }
 }
 
@@ -293,8 +292,8 @@ void dibujarInvasores() {
     SDL_Rect fuente, destino;
     fuente.w = ANCHO_E;
     fuente.h = ALTO_E;
-    for(int i = 0; i < 5; i++) {
-        for(int j = 0; j < 10; j++) {
+    for(int i = 0; i < 2; i++) {
+        for(int j = 0; j < 5; j++) {
             if (invasores.enemigos[i][j].vivo == 1) {
                 if (i == 0) {
                     if (invasores.estado == 0) {
@@ -398,7 +397,7 @@ int moverBalas(struct bala_t b[], int max, int velocidad) {
             if (b[i].limite.y <= 0) {
                 b[i].vivo = 0;
             }
-            if (b[i].limite.y + b[i].limite.y >= ALTO) {
+            if (b[i].limite.y + b[i].limite.h >= ALTO) {
                 b[i].vivo = 0;
             }
         }
@@ -418,8 +417,8 @@ int moverInvasores(int velocidad) {
     velocidadInvasores();
     switch (invasores.direccion) {
         case izquierda:
-            for(int i = 0; i < 10; i++) {
-                for(int j = 0; j < 5; j++) {
+            for(int i = 0; i < 5; i++) {
+                for(int j = 0; j < 2; j++) {
                     if (invasores.enemigos[j][i].vivo == 1) {
                         if (invasores.enemigos[j][i].limite.x <= 0) {
                             invasores.direccion = derecha;
@@ -516,7 +515,7 @@ int colision(SDL_Rect a, SDL_Rect b) {
 	return 1;
 }
 
-void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
+void detrimentoBalaBase(struct base_t* base, int b, struct bala_t* bala, int l) {
     int x, y;
     SDL_Rect fuente, destino;
     SDL_LockSurface(imagenBase[b]);
@@ -566,7 +565,7 @@ void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
 				destino.w = 11;
 				destino.h = 15;
                 SDL_UnlockSurface(imagenBase[b]);
-                SDL_BlitSurface(imagenDetrimento, &fuente, imagenBase[b], &destino);
+                SDL_BlitSurface(imagenDetrimentoSuperior, &fuente, imagenBase[b], &destino);
                 break;
             }
             y++;
@@ -575,7 +574,7 @@ void DetrimentoBala(struct base_t* base, int b, struct bala_t* bala, int l) {
     SDL_UnlockSurface(imagenBase[b]);
 }
 
-void DetrimentoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indice) {
+void detrimentoEnemigoBase(struct enemigo_t* enemigo, struct base_t* base, int indice) {
     int x, y;
     SDL_Rect destino;
     if (invasores.direccion == derecha) {
@@ -605,13 +604,13 @@ void DetrimentoEnemigo(struct enemigo_t* enemigo, struct base_t* base, int indic
 
 void colisionEnemigoBase() {
     int c;
-    for(int i = 0; i < 5; i++) {
-        for(int j = 0; j < 10; j++) {
+    for(int i = 0; i < 2; i++) {
+        for(int j = 0; j < 5; j++) {
             for(int k = 0; k < BASE; k++) {
                 if (invasores.enemigos[i][j].vivo == 1) {
                     c = colision(invasores.enemigos[i][j].limite, base[k].limite);
                     if (c == 1) {
-                        DetrimentoEnemigo(&invasores.enemigos[i][j], &base[k], k);
+                        detrimentoEnemigoBase(&invasores.enemigos[i][j], &base[k], k);
                     }
                 }
             }
@@ -636,8 +635,8 @@ void colisionJugador() {
 
 void colisionEnemiga() {
     int c;
-    for(int i = 0; i < 5; i++) {
-        for(int j = 0; j < 10; j++) {
+    for(int i = 0; i < 2; i++) {
+        for(int j = 0; j < 5; j++) {
             if (invasores.enemigos[i][j].vivo == 1) {
                 for(int k = 0; k < BALAS_J; k++) {
                     if (balas[k].vivo == 1) {
@@ -695,8 +694,8 @@ void colisionDisco() {
 
 int colisionJugadorEnemigo() {
     int c;
-    for(int i = 0; i < 5; i++) {
-        for(int j = 0; j < 10; j++) {
+    for(int i = 0; i < 2; i++) {
+        for(int j = 0; j < 5; j++) {
             if (invasores.enemigos[i][j].vivo == 1) {
                 c = colision(jugador.limite, invasores.enemigos[i][j].limite);
                 if (c == 1) {
@@ -719,7 +718,7 @@ void colisionBalaBase(struct bala_t bala[], int max, int l) {
             if (bala[i].vivo == 1) {
                 c = colision(bala[i].limite, base[j].limite);
                 if (c == 1) {
-                    DetrimentoBala(&base[j], j, &bala[i], l);
+                    detrimentoBalaBase(&base[j], j, &bala[i], l);
                 }
             }
         }
@@ -745,7 +744,7 @@ void disparoJugador() {
 }
 
 void calcularNivel() {
-    if (invasores.asesinado != 0 && invasores.asesinado % 50 == 0) {
+    if (invasores.asesinado == 1) {
         puntuacion.nivel++;
         iniciarInvasores();
         iniciarBases();
@@ -761,8 +760,8 @@ void discoIA() {
 }
 
 void enemigoIA() {
-    for(int i = 0; i < 10; i++) {
-        for(int j = 4; j >= 0; j--) {
+    for(int i = 0; i < 5; i++) {
+        for(int j = 2; j >= 0; j--) {
             if (invasores.enemigos[j][i].vivo == 1) {
                 int puntoMedio = jugador.limite.x + (jugador.limite.w / 2);
                 int inicio = invasores.enemigos[j][i].limite.x;
